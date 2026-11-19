@@ -51,28 +51,42 @@ Coming soon. Once every feature has passed a smoke test, Ekranik will be publish
 | Task | Command |
 | --- | --- |
 | Run the app | `uv run ekranik` |
-| Sync the environment with `uv.lock` | `uv sync` |
+| Sync the environment with `uv.lock`, dev tools included | `uv sync` |
+| Format and lint | `uv run ruff format .` and `uv run ruff check .` |
 | Add a dependency | `uv add <package>` |
 | Remove a dependency | `uv remove <package>` |
 | Upgrade locked dependencies | `uv lock --upgrade` |
 
 `uv add` and `uv remove` update both `pyproject.toml` and `uv.lock`. Commit the two files together so everyone runs the same versions.
 
+The project is developed with [Claude Code](https://code.claude.com/docs): [CLAUDE.md](CLAUDE.md) holds the working rules, and `.claude/` holds the agents, skills and hooks that enforce them.
+
 ### Project layout
 
 ```text
 ekranik/
 ├── src/ekranik/      # application package (entry point: ekranik:main)
-├── pyproject.toml    # project metadata and dependencies
+├── .claude/          # Claude Code agents, skills and hooks
+├── CLAUDE.md         # working rules for Claude Code
+├── Tasks.md          # backlog to version 1.0
+├── CHANGELOG.md      # changes in each version
+├── pyproject.toml    # project metadata, dependencies and ruff settings
 ├── uv.lock           # pinned dependency versions, managed by uv
 └── .python-version   # Python version uv uses (3.15)
 ```
 
 ## Roadmap
 
-- [x] Core features (see [Features](#features))
-- [ ] Smoke-test every feature
-- [ ] Publish on the Microsoft Store, for free
+Version 1.0 is the first release on the Microsoft Store. The work is planned as small tasks in [Tasks.md](Tasks.md), in six milestones:
+
+1. Foundation: main window, settings, theme, tests
+2. Recording: audio only, and the screen in full quality and frame rate, with or without the microphone
+3. Overlay and customizable hotkeys
+4. Interface in English, Russian and Armenian
+5. Quality: a smoke test of every feature and performance checks
+6. Free release on the Microsoft Store
+
+What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Support Ekranik
 
