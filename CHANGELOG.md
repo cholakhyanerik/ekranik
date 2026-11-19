@@ -4,6 +4,22 @@ Notable changes to Ekranik, newest first. Versions: patch for every finished
 task, minor when a milestone in [Tasks.md](Tasks.md) is complete, 1.0.0 for the
 first Microsoft Store release.
 
+## 0.1.3 — 2026-11-19
+
+### Added
+
+- Automated tests with pytest and pytest-qt, run with `uv run pytest`. They
+  check that Ekranik starts with its name and the Windows 11 style, opens its
+  main window and quits with exit code 0 when the window closes, so later
+  changes can't silently break startup. Both tools are development-only: they
+  are not part of the app, and they bring their own small helpers (colorama,
+  iniconfig, packaging, pluggy, pygments, typing-extensions).
+
+### Security
+
+- The tests never read or overwrite your own Ekranik settings: they keep
+  settings and app data in temporary test folders.
+
 ## 0.1.2 — 2026-11-19
 
 ### Added

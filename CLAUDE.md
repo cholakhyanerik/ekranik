@@ -21,7 +21,7 @@ that the core features already exist; Tasks.md plans the road to 1.0 either way.
 | Run the app | `uv run ekranik` |
 | Install or refresh the environment, dev tools included | `uv sync` |
 | Format and lint | `uv run ruff format .` · `uv run ruff check .` |
-| Tests (from EKR-2) | `uv run pytest` |
+| Tests | `uv run pytest` |
 | Outdated direct dependencies | `uv tree --outdated --depth 1` |
 | Upgrade all locked versions | `uv lock --upgrade`, then `uv sync` |
 | Bump the version | `uv version --bump patch` (or `minor`) |
@@ -187,6 +187,9 @@ One dated line each; durable decisions move into the rules above.
 - 2026-11-19 — "Ekranik" is a brand and is not translated (rule 14 exception).
   It is defined once, `ekranik.APP_NAME`; windows read it through
   `QGuiApplication.applicationDisplayName()`, which avoids an import cycle.
+- 2026-11-19 — Tests run under the real app name (they test `main()`'s setup),
+  so `tests/conftest.py` sends INI settings to a temp folder and turns on
+  `QStandardPaths` test mode: settings use `IniFormat`, never the registry.
 - 2026-11-19 — `.claude/settings.json` has no `allow` list and no
   `defaultMode`: Claude Code's auto-mode safety check refused to let Claude
   grant itself permissions. The owner adds them if wanted.

@@ -55,6 +55,7 @@ For now the main window is empty: recording arrives with the milestones in the [
 | Run the app | `uv run ekranik` |
 | Sync the environment with `uv.lock`, dev tools included | `uv sync` |
 | Format and lint | `uv run ruff format .` and `uv run ruff check .` |
+| Run the tests | `uv run pytest` |
 | Add a dependency | `uv add <package>` |
 | Remove a dependency | `uv remove <package>` |
 | Upgrade locked dependencies | `uv lock --upgrade` |
@@ -69,6 +70,7 @@ The project is developed with [Claude Code](https://code.claude.com/docs): [CLAU
 ekranik/
 ├── src/ekranik/      # application package (entry point: ekranik:main)
 │   └── ui/           # windows and widgets
+├── tests/            # pytest and pytest-qt tests
 ├── .claude/          # Claude Code agents, skills and hooks
 ├── CLAUDE.md         # working rules for Claude Code
 ├── Tasks.md          # backlog to version 1.0

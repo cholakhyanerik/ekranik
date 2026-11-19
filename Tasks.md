@@ -27,7 +27,6 @@ built here.
 
 | ID | Title | Type | Priority | Size | Milestone | Status |
 |---|---|---|---|---|---|---|
-| EKR-2 | Test setup with pytest and pytest-qt | Task | Highest | XS | M1 Foundation | To Do |
 | EKR-3 | Theme module with light and dark mode | Task | High | S | M1 Foundation | To Do |
 | EKR-4 | Settings storage with schema version | Task | High | S | M1 Foundation | To Do |
 | EKR-5 | Settings window | Story | High | S | M1 Foundation | To Do |
@@ -66,21 +65,6 @@ built here.
 
 ## M1 Foundation
 
-### EKR-2 · Test setup with pytest and pytest-qt
-Task · Highest · XS · `tests`
-
-**Why.** Rule 4 needs tests before features pile up.
-
-**What to do.**
-- `uv add --dev pytest pytest-qt`.
-- `tests/test_app.py`: open and close the main window with `qtbot`, with the
-  app set up by `ekranik.configure_app()` as in `main()`.
-
-**Acceptance criteria.**
-- [ ] `uv run pytest` passes; a deliberately broken assertion fails once.
-
-**Risks.** Headless runs (CI) may need `QT_QPA_PLATFORM=offscreen`.
-
 ### EKR-3 · Theme module with light and dark mode
 Task · High · S · `ui`, `design`
 
@@ -115,6 +99,10 @@ Task · High · S · `settings`
 
 **Risks.** Inside the MSIX package, writes to `%APPDATA%` go to the package's
 private folder: fine for settings, but don't pass that path to other tools.
+The tests redirect only INI user settings to a temporary folder
+(`tests/conftest.py`): always open `QSettings` with `IniFormat` (or set it as
+the default in `configure_app()`), never the registry format, or the tests
+write the real settings.
 
 ### EKR-5 · Settings window
 Story · High · S · `ui`, `settings`
@@ -474,6 +462,9 @@ Task · Medium · XS · `ci`
 **Acceptance criteria.**
 - [ ] A code push runs it once; a docs-only push does not run it.
 
+**Risks.** If the runner has no usable desktop, set `QT_QPA_PLATFORM=offscreen`;
+the tests pass that way locally (2026-11-19).
+
 ## M6 Store release
 
 ### EKR-29 · About dialog with licenses and Sponsors link
@@ -540,6 +531,8 @@ Task · High · S · `packaging`
 **What to do.**
 - `tools/build.py`, run with `uv run`: from a clean checkout to the standalone
   app folder, with the version taken from pyproject.toml.
+- Bundle the runtime dependencies only (`--no-dev`): pytest and ruff stay out
+  of the app.
 
 **Acceptance criteria.**
 - [ ] A clean clone builds with one command; the output stays out of git.
