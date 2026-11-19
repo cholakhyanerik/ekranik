@@ -1,11 +1,9 @@
 """The main window."""
 
-from PySide6.QtCore import QSize
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QMainWindow, QWidget
 
-DEFAULT_SIZE = QSize(640, 400)
-"""Size on first open, in device-independent pixels; EKR-3 moves it into the theme."""
+from ekranik.ui import theme
 
 
 class MainWindow(QMainWindow):
@@ -15,4 +13,4 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         # The app's name, a brand that stays the same in every language.
         self.setWindowTitle(QGuiApplication.applicationDisplayName())
-        self.resize(DEFAULT_SIZE)
+        self.resize(theme.MAIN_WINDOW_SIZE)

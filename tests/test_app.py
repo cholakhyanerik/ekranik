@@ -3,11 +3,13 @@
 from pathlib import Path
 
 import pytest
+import shiboken6
 from PySide6.QtCore import QSettings, QStandardPaths, QTimer
 from PySide6.QtWidgets import QApplication
 from pytestqt.qtbot import QtBot
 
 import ekranik
+from ekranik.ui import theme
 from ekranik.ui.main_window import MainWindow
 
 
@@ -15,6 +17,9 @@ def test_app_is_configured(qapp: QApplication) -> None:
     assert qapp.organizationName() == ekranik.APP_NAME
     assert qapp.applicationName() == ekranik.APP_NAME
     assert qapp.style().name() == ekranik.STYLE
+    assert qapp.findChild(theme.Theme) is not None
+    # An app-wide stylesheet doubles the cost of every widget (rule 3, theme.py).
+    assert qapp.styleSheet() == ""
 
 
 def test_tests_keep_away_from_the_users_settings(
@@ -33,6 +38,7 @@ def test_main_window_opens_and_closes(qtbot: QtBot) -> None:
     with qtbot.waitExposed(window):
         window.show()
     assert window.windowTitle() == ekranik.APP_NAME
+    assert window.size() == theme.MAIN_WINDOW_SIZE
     window.close()
     assert not window.isVisible()
 
@@ -46,12 +52,19 @@ def test_main_sets_up_the_app_shows_the_window_and_exits_with_0(
     qapp.setOrganizationName("")
     qapp.setApplicationName("pytest")
     qapp.setStyle("Fusion")
+    for installed in qapp.findChildren(theme.Theme):
+        shiboken6.delete(installed)
     shown: list[MainWindow] = []
-    setup_while_running: list[str] = []
+    setup_while_running: list[object] = []
 
     def close_main_window() -> None:
         setup_while_running.extend(
-            (qapp.organizationName(), qapp.applicationName(), qapp.style().name())
+            (
+                qapp.organizationName(),
+                qapp.applicationName(),
+                qapp.style().name(),
+                len(qapp.findChildren(theme.Theme)),
+            )
         )
         shown.extend(
             w
@@ -73,6 +86,11 @@ def test_main_sets_up_the_app_shows_the_window_and_exits_with_0(
     finally:
         guard.stop()
         ekranik.configure_app(qapp)  # for the tests that follow, even after a failure
-    assert setup_while_running == [ekranik.APP_NAME, ekranik.APP_NAME, ekranik.STYLE]
+    assert setup_while_running == [
+        ekranik.APP_NAME,
+        ekranik.APP_NAME,
+        ekranik.STYLE,
+        1,
+    ]
     assert len(shown) == 1
     assert shown[0].windowTitle() == ekranik.APP_NAME

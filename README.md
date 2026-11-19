@@ -17,6 +17,7 @@ Ekranik is a desktop app with a graphical interface for recording audio, or your
 - **Screen recording** in full quality, at full frame rate (FPS).
 - **With or without a microphone**: include your microphone in screen recordings, or leave it out.
 - **Overlay with customizable hotkeys** for audio and screen recording.
+- **Native Windows 11 look** that follows your light or dark mode live and respects contrast themes.
 
 ## Installation
 

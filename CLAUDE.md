@@ -11,7 +11,7 @@ numbers are the owner's, keep them. This file stays in English and under ~200
 lines: procedures live in skills, this file keeps the rule and its reason.
 
 **State on 2026-11-19:** `uv run ekranik` opens an empty main window
-(`ekranik.main()` → `configure_app()` → `ui/main_window.py`). The owner reports
+(`ekranik.main()` → `configure_app()`: name, style, `ui/theme.py`). The owner reports
 that the core features already exist; Tasks.md plans the road to 1.0 either way.
 
 ## Commands
@@ -179,7 +179,6 @@ One dated line each; durable decisions move into the rules above.
 - 2026-11-19 — Ruff is the dev tool for format and lint, with the `S`
   (security) and `PERF` rules: rules 3 and 9 in code. Line length stays at
   ruff's default.
-- 2026-11-19 — No CI yet, as there is nothing to test; EKR-28 adds it.
 - 2026-11-19 — The author's email stays public in pyproject.toml and commits
   (owner's choice).
 - 2026-11-19 — The version goes up after every task, tooling-only ones
@@ -190,6 +189,11 @@ One dated line each; durable decisions move into the rules above.
 - 2026-11-19 — Tests run under the real app name (they test `main()`'s setup),
   so `tests/conftest.py` sends INI settings to a temp folder and turns on
   `QStandardPaths` test mode: settings use `IniFormat`, never the registry.
+- 2026-11-19 — No app-wide stylesheet (rule 3 over EKR-3's plan): measured, it
+  doubled building and first painting 210 controls (34 → 67 ms). Text roles get
+  font and palette from `theme.set_role()`; a widget needing a sheet gets its own.
+- 2026-11-19 — The theme computes font pixels at 96 per inch: `QFontInfo` loads
+  the font engine (+12–14 ms at start). A test checks both agree.
 - 2026-11-19 — `.claude/settings.json` has no `allow` list and no
   `defaultMode`: Claude Code's auto-mode safety check refused to let Claude
   grant itself permissions. The owner adds them if wanted.

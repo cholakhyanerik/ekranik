@@ -4,6 +4,7 @@ import sys
 
 from PySide6.QtWidgets import QApplication
 
+from ekranik.ui import theme
 from ekranik.ui.main_window import MainWindow
 
 APP_NAME = "Ekranik"
@@ -14,10 +15,11 @@ STYLE = "windows11"
 
 
 def configure_app(app: QApplication) -> None:
-    """Give the app its name, which QSettings and window titles use, and its style."""
+    """Give the app its name, which QSettings and window titles use, its style and theme."""
     app.setOrganizationName(APP_NAME)
     app.setApplicationName(APP_NAME)
     app.setStyle(STYLE)
+    theme.install(app)
 
 
 def main() -> int:

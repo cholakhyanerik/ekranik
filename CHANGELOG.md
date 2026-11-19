@@ -4,6 +4,26 @@ Notable changes to Ekranik, newest first. Versions: patch for every finished
 task, minor when a milestone in [Tasks.md](Tasks.md) is complete, 1.0.0 for the
 first Microsoft Store release.
 
+## 0.1.4 — 2026-11-19
+
+### Added
+
+- Ekranik follows the Windows light or dark mode while it runs: switching it in
+  Windows settings updates the app at once, without a restart. It also reacts
+  to contrast themes, where it uses only the colors Windows chose, and to a
+  larger system text size, where titles grow with the body text.
+- One design system for every screen (`src/ekranik/ui/theme.py`): the Windows 11
+  spacing, corner radii and type ramp, and colors for hints, errors and
+  confirmations in light and dark mode, all readable at WCAG AA contrast or
+  better. Titles scale with the Windows text size; disabled text keeps the
+  standard Windows look.
+
+### Changed
+
+- The main window's size now comes from the theme (still 640 × 400). Start-up
+  time is unchanged at about 0.3–0.4 s: the theme avoids a global stylesheet,
+  which would have doubled the time to build every window.
+
 ## 0.1.3 — 2026-11-19
 
 ### Added

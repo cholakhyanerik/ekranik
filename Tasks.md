@@ -27,7 +27,6 @@ built here.
 
 | ID | Title | Type | Priority | Size | Milestone | Status |
 |---|---|---|---|---|---|---|
-| EKR-3 | Theme module with light and dark mode | Task | High | S | M1 Foundation | To Do |
 | EKR-4 | Settings storage with schema version | Task | High | S | M1 Foundation | To Do |
 | EKR-5 | Settings window | Story | High | S | M1 Foundation | To Do |
 | EKR-6 | Translation infrastructure (en, ru, hy) | Task | High | S | M1 Foundation | To Do |
@@ -65,25 +64,6 @@ built here.
 
 ## M1 Foundation
 
-### EKR-3 · Theme module with light and dark mode
-Task · High · S · `ui`, `design`
-
-**Why.** Rule 15: one source for colors, spacing and fonts.
-
-**What to do.**
-- `src/ekranik/ui/theme.py`: light and dark colors, a spacing scale, corner
-  radii, font sizes; a small stylesheet built from them.
-- Follow the Windows app mode through `QGuiApplication.styleHints()`
-  (`colorScheme()` and `colorSchemeChanged`).
-- Move the main window's default size (`DEFAULT_SIZE` in `main_window.py`, from
-  EKR-1) into the theme.
-
-**Acceptance criteria.**
-- [ ] Switching Windows between light and dark updates the app without a restart.
-- [ ] No color literals outside `theme.py`.
-
-**Risks.** Heavy stylesheets fight the native `windows11` style; keep them small.
-
 ### EKR-4 · Settings storage with schema version
 Task · High · S · `settings`
 
@@ -112,6 +92,11 @@ Story · High · S · `ui`, `settings`
 **What to do.**
 - A settings dialog with pages General, Recording and Hotkeys, opened from the
   main window; values come from and go to `settings.py`.
+- Look: headings and hints through `theme.set_role()`, gaps from
+  `theme.Spacing`. To group settings as Windows 11 cards, add a painted `Card`
+  widget with card colors in the theme (Fluent card fill and stroke: light
+  `#fbfbfb`/`#e5e5e5`, dark `#2b2b2b`/`#1d1d1d`) and a border in the palette's
+  text color in high contrast — no stylesheet (see `theme.py`).
 
 **Acceptance criteria.**
 - [ ] Changes apply at once and persist; Esc cancels, Enter confirms.
@@ -202,6 +187,8 @@ Story · High · S · `recording`, `audio`
 **What to do.**
 - List inputs with `QMediaDevices.audioInputs()`; default = the system
   default; follow `audioInputsChanged`; save the device ID.
+- The fallback notice is a warning: add a `caution` color and role to the theme
+  (Fluent caution: light `#9d5d00`, dark `#fce100`).
 
 **Acceptance criteria.**
 - [ ] Plugging a USB microphone in or out updates the list without a restart.
@@ -295,6 +282,9 @@ Story · High · S · `recording`
 - A clear message with the fix (a button that opens
   `ms-settings:privacy-microphone`); recording stops cleanly; the partial file
   stays playable.
+- The message text uses `theme.Role.CRITICAL`; if it becomes a colored bar,
+  add its background to the theme (Fluent critical background: light
+  `#fde7e9`, dark `#442726`).
 
 **Acceptance criteria.**
 - [ ] Each error case is reproduced once and handled as described.
@@ -313,6 +303,11 @@ Story · Highest · S · `overlay`, `ui`
 - A small frameless always-on-top window (`Qt.Tool`, `FramelessWindowHint`,
   `WindowStaysOnTopHint`): mode, elapsed time, a Stop button; draggable; its
   position saved. Decide whether it also shows start buttons while idle.
+- Look: add the overlay's surface and stroke colors to the theme; round the
+  corners with `theme.Radius.OVERLAY` through DWM
+  (`DWMWA_WINDOW_CORNER_PREFERENCE`), not a stylesheet; the recording dot uses
+  the `critical` color, or palette colors in high contrast (`colors is None`);
+  repaint on `Theme.changed` with `update()`.
 
 **Acceptance criteria.**
 - [ ] Stays above other windows during a recording; usable with the keyboard.
