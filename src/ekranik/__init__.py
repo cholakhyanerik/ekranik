@@ -2,8 +2,10 @@
 
 import sys
 
+from PySide6.QtCore import QSettings
 from PySide6.QtWidgets import QApplication
 
+from ekranik import settings
 from ekranik.ui import theme
 from ekranik.ui.main_window import MainWindow
 
@@ -15,11 +17,15 @@ STYLE = "windows11"
 
 
 def configure_app(app: QApplication) -> None:
-    """Give the app its name, which QSettings and window titles use, its style and theme."""
+    """Set the app up: its name (for settings and window titles), style, theme, settings."""
     app.setOrganizationName(APP_NAME)
     app.setApplicationName(APP_NAME)
     app.setStyle(STYLE)
+    # QSettings() and QSettings(scope) then use INI too. QSettings(org, app)
+    # ignores this and writes the registry: open settings through settings.py.
+    QSettings.setDefaultFormat(QSettings.Format.IniFormat)
     theme.install(app)
+    settings.install(app)
 
 
 def main() -> int:

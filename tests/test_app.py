@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QApplication
 from pytestqt.qtbot import QtBot
 
 import ekranik
+from ekranik import settings
 from ekranik.ui import theme
 from ekranik.ui.main_window import MainWindow
 
@@ -30,6 +31,10 @@ def test_tests_keep_away_from_the_users_settings(
     )
     assert Path(settings.fileName()).is_relative_to(tmp_path_factory.getbasetemp())
     assert QStandardPaths.isTestModeEnabled()
+    # Recordings made by tests land in temporary folders, not in Videos or Music.
+    current = ekranik.settings.install(QApplication.instance())
+    for folder in (current.screen_folder, current.audio_folder):
+        assert Path(folder).is_relative_to(tmp_path_factory.getbasetemp())
 
 
 def test_main_window_opens_and_closes(qtbot: QtBot) -> None:
@@ -52,7 +57,10 @@ def test_main_sets_up_the_app_shows_the_window_and_exits_with_0(
     qapp.setOrganizationName("")
     qapp.setApplicationName("pytest")
     qapp.setStyle("Fusion")
-    for installed in qapp.findChildren(theme.Theme):
+    for installed in (
+        *qapp.findChildren(theme.Theme),
+        *qapp.findChildren(settings.Settings),
+    ):
         shiboken6.delete(installed)
     shown: list[MainWindow] = []
     setup_while_running: list[object] = []
@@ -64,6 +72,8 @@ def test_main_sets_up_the_app_shows_the_window_and_exits_with_0(
                 qapp.applicationName(),
                 qapp.style().name(),
                 len(qapp.findChildren(theme.Theme)),
+                len(qapp.findChildren(settings.Settings)),
+                QSettings.defaultFormat(),
             )
         )
         shown.extend(
@@ -82,6 +92,8 @@ def test_main_sets_up_the_app_shows_the_window_and_exits_with_0(
     guard.timeout.connect(lambda: qapp.exit(1))
     guard.start(5000)
     try:
+        # Restored by configure_app() below, so no later test can reach the registry.
+        QSettings.setDefaultFormat(QSettings.Format.NativeFormat)
         assert ekranik.main() == 0
     finally:
         guard.stop()
@@ -91,6 +103,8 @@ def test_main_sets_up_the_app_shows_the_window_and_exits_with_0(
         ekranik.APP_NAME,
         ekranik.STYLE,
         1,
+        1,
+        QSettings.Format.IniFormat,
     ]
     assert len(shown) == 1
     assert shown[0].windowTitle() == ekranik.APP_NAME

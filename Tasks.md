@@ -27,7 +27,6 @@ built here.
 
 | ID | Title | Type | Priority | Size | Milestone | Status |
 |---|---|---|---|---|---|---|
-| EKR-4 | Settings storage with schema version | Task | High | S | M1 Foundation | To Do |
 | EKR-5 | Settings window | Story | High | S | M1 Foundation | To Do |
 | EKR-6 | Translation infrastructure (en, ru, hy) | Task | High | S | M1 Foundation | To Do |
 | EKR-7 | Language switcher | Story | Medium | S | M1 Foundation | To Do |
@@ -64,26 +63,6 @@ built here.
 
 ## M1 Foundation
 
-### EKR-4 · Settings storage with schema version
-Task · High · S · `settings`
-
-**Why.** Rule 4: settings must survive updates.
-
-**What to do.**
-- `src/ekranik/settings.py`: typed accessors over `QSettings` (INI format), all
-  defaults in one place, a `schema_version` with one migration step per version.
-
-**Acceptance criteria.**
-- [ ] Settings survive a restart.
-- [ ] A test migrates a version-0 file; unknown keys are kept.
-
-**Risks.** Inside the MSIX package, writes to `%APPDATA%` go to the package's
-private folder: fine for settings, but don't pass that path to other tools.
-The tests redirect only INI user settings to a temporary folder
-(`tests/conftest.py`): always open `QSettings` with `IniFormat` (or set it as
-the default in `configure_app()`), never the registry format, or the tests
-write the real settings.
-
 ### EKR-5 · Settings window
 Story · High · S · `ui`, `settings`
 
@@ -91,7 +70,11 @@ Story · High · S · `ui`, `settings`
 
 **What to do.**
 - A settings dialog with pages General, Recording and Hotkeys, opened from the
-  main window; values come from and go to `settings.py`.
+  main window; values come from and go to `settings.Settings`
+  (`settings.install(app)`), which already holds the folders, the frame rate
+  and the microphone default. Assign only what the user changed: an assignment
+  is a choice and pins the value (a default folder would stop following
+  Windows); `del settings.x` goes back to the default.
 - Look: headings and hints through `theme.set_role()`, gaps from
   `theme.Spacing`. To group settings as Windows 11 cards, add a painted `Card`
   widget with card colors in the theme (Fluent card fill and stroke: light
@@ -102,14 +85,20 @@ Story · High · S · `ui`, `settings`
 - [ ] Changes apply at once and persist; Esc cancels, Enter confirms.
 - [ ] Every control is reachable with the keyboard.
 
+**Risks.** Qt's `QFileDialog` saves its last folder with `QSettings(scope,
+"QtProject")`, which ignores the INI default and may write
+`HKCU\Software\QtProject` (a Qt 5 app left that key on the dev machine). Check
+it, decide, and record the decision; tests replace the folder dialog.
+
 ### EKR-6 · Translation infrastructure (en, ru, hy)
 Task · High · S · `i18n`
 
 **Why.** Rule 14: the app ships in English, Russian and Armenian.
 
 **What to do.**
-- `QTranslator` loads `ekranik_<lang>.qm`; language = saved choice → Windows
-  display language (`QLocale.system().uiLanguages()`) → English.
+- `QTranslator` loads `ekranik_<lang>.qm`; language = saved choice (a new
+  `Setting` in `settings.py`, empty = follow Windows) → Windows display
+  language (`QLocale.system().uiLanguages()`) → English.
 - `translations/ekranik_ru.ts` and `ekranik_hy.ts` through
   `uv run pyside6-lupdate`; `.qm` files through `uv run pyside6-lrelease`.
   Decide whether `.qm` files are committed or built when packaging.
@@ -170,8 +159,10 @@ Story · High · S · `recording`, `files`
 **Why.** Recordings must land somewhere predictable and never overwrite anything.
 
 **What to do.**
-- Defaults through `QStandardPaths`: `Videos\Ekranik` for screen recordings,
-  `Music\Ekranik` for audio; changeable in settings.
+- The folders are `Settings.screen_folder` and `Settings.audio_folder`
+  (defaults `Videos\Ekranik` and `Music\Ekranik`); create the folder when the
+  first recording is saved into it, and check it again then (it exists or can
+  be created, and is writable).
 - Names from the start time, such as `Ekranik 2026-11-19 14-03-27.mp4`; a
   clash adds ` (2)`, ` (3)`.
 - An "Open folder" button.
@@ -247,8 +238,10 @@ Story · High · S · `recording`, `video`
 **Why.** "Full quality, including FPS" — the file must keep the frame rate.
 
 **What to do.**
-- Setting: "Screen refresh rate" (default), 60, 30; passed to the recorder
-  with `setVideoFrameRate`.
+- `Settings.frame_rate`: `FrameRate.SCREEN` (the default), 60 or 30, passed to
+  the recorder with `setVideoFrameRate`. `SCREEN` is 0, which Qt reads as "the
+  recorder chooses": turn it into the recorded screen's `QScreen.refreshRate()`
+  first (EKR-13).
 - A test helper that measures the file's real frame rate (frames ÷ duration).
 
 **Acceptance criteria.**
@@ -265,7 +258,7 @@ Story · Highest · S · `recording`, `audio`, `video`
 
 **What to do.**
 - Add `QAudioInput` to the screen session; a microphone on/off toggle in the
-  main window (its default in settings).
+  main window, starting from `Settings.microphone`.
 
 **Acceptance criteria.**
 - [ ] Toggle off: the file has no microphone audio. Toggle on: audio stays in
@@ -361,7 +354,8 @@ Story · High · S · `hotkeys`, `ui`
 
 **What to do.**
 - Settings → Hotkeys: a `QKeySequenceEdit` per action, a conflict check (inside
-  the app and against Windows registration), "Reset to defaults"; saved.
+  the app and against Windows registration), "Reset to defaults" (`del` on each
+  hotkey setting); saved.
 
 **Acceptance criteria.**
 - [ ] A taken combination shows a clear message and is not saved.
@@ -548,7 +542,7 @@ Task · High · S · `packaging`
 - [ ] The MSIX installs, starts, records with the microphone and uninstalls
   cleanly.
 
-**Risks.** File-system virtualization of `%APPDATA%` (EKR-4); the microphone
+**Risks.** File-system virtualization of `%APPDATA%` (see `settings.py`); the microphone
 privacy prompt for packaged apps.
 
 ### EKR-35 · Partner Center account and app name

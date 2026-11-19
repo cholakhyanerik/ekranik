@@ -4,6 +4,41 @@ Notable changes to Ekranik, newest first. Versions: patch for every finished
 task, minor when a milestone in [Tasks.md](Tasks.md) is complete, 1.0.0 for the
 first Microsoft Store release.
 
+## 0.1.5 — 2026-11-19
+
+### Added
+
+- Ekranik keeps its settings in a small file, `%APPDATA%\Ekranik\Ekranik.ini`,
+  and they survive updates: the file carries a version number, and when a later
+  Ekranik renames a setting, it moves your value to the new name instead of
+  dropping it. Settings it doesn't know, such as those of a newer Ekranik, are
+  kept. A value it can't read, such as a mistyped hand edit, counts as the
+  default until you choose a new one.
+- The first settings and their defaults: screen recordings are saved to
+  `Videos\Ekranik` and audio recordings to `Music\Ekranik`, and screen
+  recordings use the screen's refresh rate and include the microphone. Until
+  you choose a folder, the default follows Windows when you move your Videos
+  or Music folder; a folder you choose stays the one you chose. A settings
+  window to change them comes in a later version, and recording after that.
+
+### Changed
+
+- Opening and reading the settings adds under 1 ms to the start, plus about
+  3 ms to load the code.
+- Ruff, the development tool for formatting and linting, is updated from 0.17.5
+  to 0.17.6.
+
+### Security
+
+- Ekranik reads and writes only your own settings file: nothing goes to the
+  Windows registry, and a settings file in `C:\ProgramData`, which any user of
+  the PC can create, is ignored, so nobody else can redirect your recordings.
+- A recording folder must be a full path on a drive or a network share. Windows
+  device paths and hidden control or text-direction characters are refused, so
+  the folder you see is always the folder that is used.
+- The tests keep their recording folders and system-wide settings in temporary
+  folders too, so they can never touch your Videos or Music folder.
+
 ## 0.1.4 — 2026-11-19
 
 ### Added

@@ -49,6 +49,8 @@ Coming soon. Once every feature has passed a smoke test, Ekranik will be publish
 
 For now the main window is empty: recording arrives with the milestones in the [Roadmap](#roadmap).
 
+Ekranik keeps its settings in `%APPDATA%\Ekranik\Ekranik.ini`. They survive updates: when a new version renames a setting, your value moves with it.
+
 ## Development
 
 | Task | Command |
@@ -70,7 +72,8 @@ The project is developed with [Claude Code](https://code.claude.com/docs): [CLAU
 ```text
 ekranik/
 ├── src/ekranik/      # application package (entry point: ekranik:main)
-│   └── ui/           # windows and widgets
+│   ├── settings.py   # settings, their defaults and migrations
+│   └── ui/           # windows, widgets and the theme
 ├── tests/            # pytest and pytest-qt tests
 ├── .claude/          # Claude Code agents, skills and hooks
 ├── CLAUDE.md         # working rules for Claude Code
