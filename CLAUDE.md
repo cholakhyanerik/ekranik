@@ -10,9 +10,9 @@ The rules below come from the owner (2026-11-19) and bind every change; the
 numbers are the owner's, keep them. This file stays in English and under ~200
 lines: procedures live in skills, this file keeps the rule and its reason.
 
-**State on 2026-11-19:** the repo holds the uv scaffold only —
-`src/ekranik/__init__.py` prints a placeholder. The owner reports that the core
-features already exist; Tasks.md plans the road to 1.0 either way.
+**State on 2026-11-19:** `uv run ekranik` opens an empty main window
+(`ekranik.main()` → `configure_app()` → `ui/main_window.py`). The owner reports
+that the core features already exist; Tasks.md plans the road to 1.0 either way.
 
 ## Commands
 
@@ -184,6 +184,9 @@ One dated line each; durable decisions move into the rules above.
   (owner's choice).
 - 2026-11-19 — The version goes up after every task, tooling-only ones
   included: rule 7 says "always".
+- 2026-11-19 — "Ekranik" is a brand and is not translated (rule 14 exception).
+  It is defined once, `ekranik.APP_NAME`; windows read it through
+  `QGuiApplication.applicationDisplayName()`, which avoids an import cycle.
 - 2026-11-19 — `.claude/settings.json` has no `allow` list and no
   `defaultMode`: Claude Code's auto-mode safety check refused to let Claude
   grant itself permissions. The owner adds them if wanted.

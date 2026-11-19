@@ -27,7 +27,6 @@ built here.
 
 | ID | Title | Type | Priority | Size | Milestone | Status |
 |---|---|---|---|---|---|---|
-| EKR-1 | Main window skeleton | Story | Highest | S | M1 Foundation | To Do |
 | EKR-2 | Test setup with pytest and pytest-qt | Task | Highest | XS | M1 Foundation | To Do |
 | EKR-3 | Theme module with light and dark mode | Task | High | S | M1 Foundation | To Do |
 | EKR-4 | Settings storage with schema version | Task | High | S | M1 Foundation | To Do |
@@ -67,23 +66,6 @@ built here.
 
 ## M1 Foundation
 
-### EKR-1 · Main window skeleton
-Story · Highest · S · `ui`
-
-**Why.** `uv run ekranik` prints a placeholder; every feature needs a window.
-
-**What to do.**
-- `main()` in `src/ekranik/__init__.py` creates the `QApplication` (organization
-  and application name for QSettings, the `windows11` style) and shows the
-  main window.
-- `src/ekranik/ui/main_window.py`: a `QMainWindow` titled "Ekranik".
-
-**Acceptance criteria.**
-- [ ] `uv run ekranik` opens the window; closing it exits with code 0.
-- [ ] The window is visible within 1 s of launch on the dev machine (rule 3).
-
-**Risks.** If the existing implementation arrives, port its window instead.
-
 ### EKR-2 · Test setup with pytest and pytest-qt
 Task · Highest · XS · `tests`
 
@@ -91,7 +73,8 @@ Task · Highest · XS · `tests`
 
 **What to do.**
 - `uv add --dev pytest pytest-qt`.
-- `tests/test_app.py`: open and close the main window with `qtbot`.
+- `tests/test_app.py`: open and close the main window with `qtbot`, with the
+  app set up by `ekranik.configure_app()` as in `main()`.
 
 **Acceptance criteria.**
 - [ ] `uv run pytest` passes; a deliberately broken assertion fails once.
@@ -108,6 +91,8 @@ Task · High · S · `ui`, `design`
   radii, font sizes; a small stylesheet built from them.
 - Follow the Windows app mode through `QGuiApplication.styleHints()`
   (`colorScheme()` and `colorSchemeChanged`).
+- Move the main window's default size (`DEFAULT_SIZE` in `main_window.py`, from
+  EKR-1) into the theme.
 
 **Acceptance criteria.**
 - [ ] Switching Windows between light and dark updates the app without a restart.

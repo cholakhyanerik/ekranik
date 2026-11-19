@@ -46,6 +46,8 @@ Coming soon. Once every feature has passed a smoke test, Ekranik will be publish
 
 `uv run` creates the virtual environment, installs the exact dependency versions pinned in `uv.lock`, and launches Ekranik. The first run takes longer because uv downloads Python and PySide6 (a few hundred MB).
 
+For now the main window is empty: recording arrives with the milestones in the [Roadmap](#roadmap).
+
 ## Development
 
 | Task | Command |
@@ -66,6 +68,7 @@ The project is developed with [Claude Code](https://code.claude.com/docs): [CLAU
 ```text
 ekranik/
 ├── src/ekranik/      # application package (entry point: ekranik:main)
+│   └── ui/           # windows and widgets
 ├── .claude/          # Claude Code agents, skills and hooks
 ├── CLAUDE.md         # working rules for Claude Code
 ├── Tasks.md          # backlog to version 1.0
