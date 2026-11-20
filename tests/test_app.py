@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QApplication
 from pytestqt.qtbot import QtBot
 
 import ekranik
-from ekranik import settings
+from ekranik import i18n, settings
 from ekranik.ui import theme
 from ekranik.ui.main_window import MainWindow
 
@@ -19,6 +19,7 @@ def test_app_is_configured(qapp: QApplication) -> None:
     assert qapp.applicationName() == ekranik.APP_NAME
     assert qapp.style().name() == ekranik.STYLE
     assert qapp.findChild(theme.Theme) is not None
+    assert qapp.findChild(i18n.Translations) is not None
     # An app-wide stylesheet doubles the cost of every widget (rule 3, theme.py).
     assert qapp.styleSheet() == ""
 
@@ -59,6 +60,7 @@ def test_main_sets_up_the_app_shows_the_window_and_exits_with_0(
     qapp.setStyle("Fusion")
     for installed in (
         *qapp.findChildren(theme.Theme),
+        *qapp.findChildren(i18n.Translations),
         *qapp.findChildren(settings.Settings),
     ):
         shiboken6.delete(installed)
@@ -73,6 +75,7 @@ def test_main_sets_up_the_app_shows_the_window_and_exits_with_0(
                 qapp.style().name(),
                 len(qapp.findChildren(theme.Theme)),
                 len(qapp.findChildren(settings.Settings)),
+                len(qapp.findChildren(i18n.Translations)),
                 QSettings.defaultFormat(),
             )
         )
@@ -102,6 +105,7 @@ def test_main_sets_up_the_app_shows_the_window_and_exits_with_0(
         ekranik.APP_NAME,
         ekranik.APP_NAME,
         ekranik.STYLE,
+        1,
         1,
         1,
         QSettings.Format.IniFormat,

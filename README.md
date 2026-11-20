@@ -18,6 +18,7 @@ Ekranik is a desktop app with a graphical interface for recording audio, or your
 - **With or without a microphone**: include your microphone in screen recordings, or leave it out.
 - **Overlay with customizable hotkeys** for audio and screen recording.
 - **Native Windows 11 look** that follows your light or dark mode live and respects contrast themes, and works with the keyboard alone.
+- **English, Russian and Armenian**: the interface follows your Windows language.
 
 ## Installation
 
@@ -57,6 +58,10 @@ Open the settings with the **Settings** button or `Ctrl+,`. On the Recording pag
 
 Ekranik keeps its settings in `%APPDATA%\Ekranik\Ekranik.ini`. They survive updates: when a new version renames a setting, your value moves with it.
 
+### Language
+
+Ekranik is in English, Russian and Armenian. It uses the first language in your Windows list of preferred languages (Settings → Time & language → Language & region) that it has, then the language of your regional format, and English otherwise. A language switcher in the settings window is coming; until then, a language can be set in the settings file under `[interface]` as `language=en`, `ru` or `hy`.
+
 ## Development
 
 | Task | Command |
@@ -68,6 +73,7 @@ Ekranik keeps its settings in `%APPDATA%\Ekranik\Ekranik.ini`. They survive upda
 | Add a dependency | `uv add <package>` |
 | Remove a dependency | `uv remove <package>` |
 | Upgrade locked dependencies | `uv lock --upgrade` |
+| Collect new texts and build the translations | `uv run tools/translations.py` |
 
 `uv add` and `uv remove` update both `pyproject.toml` and `uv.lock`. Commit the two files together so everyone runs the same versions.
 
@@ -79,7 +85,11 @@ The project is developed with [Claude Code](https://code.claude.com/docs): [CLAU
 ekranik/
 ├── src/ekranik/      # application package (entry point: ekranik:main)
 │   ├── settings.py   # settings, their defaults and migrations
+│   ├── i18n.py       # picks the language and loads its translation
+│   ├── translations/ # built translations (.qm) the app loads
 │   └── ui/           # windows, widgets and the theme
+├── translations/     # Russian and Armenian translation sources (.ts)
+├── tools/            # development scripts, such as building the translations
 ├── tests/            # pytest and pytest-qt tests
 ├── .claude/          # Claude Code agents, skills and hooks
 ├── CLAUDE.md         # working rules for Claude Code

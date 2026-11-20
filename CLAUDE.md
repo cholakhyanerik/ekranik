@@ -10,9 +10,9 @@ The rules below come from the owner (2026-11-19) and bind every change; the
 numbers are the owner's, keep them. This file stays in English and under ~200
 lines: procedures live in skills, this file keeps the rule and its reason.
 
-**State on 2026-11-20:** `uv run ekranik` opens the main window with a Settings
-button (`main()` → `configure_app()`: name, style, `ui/theme.py`, `settings.py`);
-no recording yet. Tasks.md plans the road to 1.0.
+**State on 2026-11-20:** `uv run ekranik` opens the main window, in English,
+Russian or Armenian, with a Settings button (`main()` → `configure_app()`: name,
+style, theme, settings, language); no recording yet. Tasks.md: the road to 1.0.
 
 ## Commands
 
@@ -25,6 +25,7 @@ no recording yet. Tasks.md plans the road to 1.0.
 | Outdated direct dependencies | `uv tree --outdated --depth 1` |
 | Upgrade all locked versions | `uv lock --upgrade`, then `uv sync` |
 | Bump the version | `uv version --bump patch` (or `minor`) |
+| Collect texts, build translations (`--check`: verify) | `uv run tools/translations.py` |
 | Hook self-test | `python -I .claude/hooks/selftest.py` |
 
 uv is required: never `pip install` into the project — `uv add` and
@@ -133,11 +134,13 @@ the last step and marked **Needs owner** in Tasks.md.
 The deny rules and the hooks enforce this.
 
 **14. Three languages: English, Russian, Armenian.** Every visible string is
-translatable (`self.tr()`, `QCoreApplication.translate`); the source language
-is English; translations live in `translations/ekranik_ru.ts` and
-`translations/ekranik_hy.ts` — `hy` is Armenian (AM is the country). A change
-with new text updates all three. Language: saved choice → Windows display
-language → English. Use established Windows terminology; don't invent words.
+translatable (`self.tr()`, `QCoreApplication.translate`), English being the
+source; translations live in `translations/ekranik_ru.ts` and `ekranik_hy.ts` —
+`hy` is Armenian (AM is the country). A change with new text translates it into
+both (/i18n; the tests fail otherwise). The built `.qm` files are committed, so
+a run from source has its languages. Language: saved choice → the first of
+Windows' preferred languages Ekranik has → English. Use established Windows terms; don't
+invent words.
 
 **15. Follow the design; improve UI/UX.** Colors, spacing, radii and fonts come
 only from the theme module (EKR-3); widgets hold no hard-coded colors or sizes.
@@ -152,7 +155,7 @@ for web projects.
 
 ## Claude Code setup (`.claude/`)
 
-- **Skills:** `/start-task` (rules 1, 2, 5, 12) and `/finish-task` (rules 4–8, 10).
+- **Skills:** `/start-task` (rules 1, 2, 5, 12), `/finish-task` (4–8, 10), `/i18n` (14).
 - **Agents:** `Explore` (read-only search), `docs` (Claude Code, PySide6, uv,
   MSIX/Store and GitHub facts with sources), `reviewer` (one lens per run),
   `reviewer-security` (rule 9), `refuter` (tries to disprove each finding).
@@ -169,12 +172,9 @@ for web projects.
 
 One dated line each; durable decisions move into the rules above.
 
-- 2026-11-19 — The backlog file is `Tasks.md`, the owner's name for it (the
-  owner's other projects use FEATURE_TASKS.md).
-- 2026-11-19 — Ruff formats and lints, with the `S` (security, rule 9) and
-  `PERF` (rule 3) rules; ruff's default line length.
-- 2026-11-19 — The author's email stays public in pyproject.toml and commits
-  (owner's choice).
+- 2026-11-19 — The backlog is `Tasks.md`, the owner's name (not FEATURE_TASKS.md).
+- 2026-11-19 — Ruff with the `S` (rule 9) and `PERF` (rule 3) rules, default width.
+- 2026-11-19 — The author's email stays public in pyproject.toml and commits.
 - 2026-11-19 — "Ekranik" is a brand and is not translated (rule 14 exception).
   It is defined once, `ekranik.APP_NAME`; windows read it through
   `QGuiApplication.applicationDisplayName()`, which avoids an import cycle.
@@ -189,9 +189,8 @@ One dated line each; durable decisions move into the rules above.
   reads in under 1 ms). A chosen value is always stored, even the default, so a
   chosen folder stays chosen (rule 9); unchosen defaults follow Windows. A
   network folder is allowed when the user names one: Windows connects, not Ekranik.
-- 2026-11-19 — `.claude/settings.json` has no `allow` list and no
-  `defaultMode`: Claude Code's auto-mode safety check refused to let Claude
-  grant itself permissions. The owner adds them if wanted.
+- 2026-11-19 — `.claude/settings.json` has no `allow` list or `defaultMode`:
+  auto mode refused to let Claude grant itself permissions; the owner may add them.
 - 2026-11-20 — Folders are picked with Windows' `IFileOpenDialog` via ctypes
   (`ui/folder_picker.py`), never `QFileDialog`: it writes the last folder to
   `HKCU\Software\QtProject`, shared by all Qt apps, with no switch (Qt 6.12).
@@ -199,3 +198,8 @@ One dated line each; durable decisions move into the rules above.
   closing restores the file's raw values (`Setting.raw`/`restore`), so unchosen
   stays unchosen. Pages appear with their first setting. Its code loads on first
   open: 7–10 ms off every start (rule 3).
+- 2026-11-20 — An unchosen language walks Windows' preferred-language list, as
+  Store apps do: `QLocale.system().uiLanguages()`, ~2 ms (ctypes: 12 ms, and
+  only the display language). Translations load in the GUI thread (rule 3
+  exception: under 1 ms, needed before the first window). Key
+  `interface/language`: Qt's INI treats `[General]` specially.

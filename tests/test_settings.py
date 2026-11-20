@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QApplication
 from pytestqt.qtbot import QtBot
 
 from ekranik import settings
-from ekranik.settings import FrameRate, Settings
+from ekranik.settings import FrameRate, Language, Settings
 
 
 def open_file(path: Path) -> Settings:
@@ -47,6 +47,7 @@ def test_defaults_when_there_is_no_file(tmp_path: Path) -> None:
     assert current.audio_folder == QDir(music).filePath("Ekranik")
     assert current.frame_rate is FrameRate.SCREEN
     assert current.microphone is True
+    assert current.language is Language.SYSTEM
     # Only the version is written; the defaults are not, so the default folders
     # follow a moved Videos or Music folder.
     assert on_disk(current.store, tmp_path) == {
@@ -72,6 +73,7 @@ def test_settings_survive_a_restart(tmp_path: Path, qtbot: QtBot) -> None:
     current.screen_folder = folder
     current.audio_folder = "\\\\server\\share\\audio"
     current.frame_rate = FrameRate.FPS_30
+    current.language = Language.ARMENIAN
     current.microphone = False
     # Written by the event loop, as in the app: no explicit sync.
     qtbot.waitUntil(
@@ -81,7 +83,33 @@ def test_settings_survive_a_restart(tmp_path: Path, qtbot: QtBot) -> None:
     assert restarted.screen_folder == folder
     assert restarted.audio_folder == "//server/share/audio"
     assert restarted.frame_rate is FrameRate.FPS_30
+    assert restarted.language is Language.ARMENIAN
     assert restarted.microphone is False
+
+
+def test_following_windows_can_be_chosen(tmp_path: Path) -> None:
+    # Stored as an empty value: it must read back as a choice, not as missing.
+    path = tmp_path / "Ekranik.ini"
+    current = open_file(path)
+    current.language = Language.RUSSIAN
+    current.language = Language.SYSTEM
+    current.store.sync()
+    restarted = open_file(Path(shutil.copy(path, tmp_path / "restart.ini")))
+    assert Settings.language.stored(restarted) is Language.SYSTEM
+    assert on_disk(restarted.store, tmp_path)[Settings.language.key] == ""
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [("ru", Language.RUSSIAN), (" HY ", Language.ARMENIAN), ("En", Language.ENGLISH)],
+)
+def test_a_hand_written_language_is_read(
+    tmp_path: Path, raw: str, expected: Language
+) -> None:
+    current = open_file(
+        write_ini(tmp_path / "Ekranik.ini", f"[interface]\nlanguage={raw}\n")
+    )
+    assert current.language is expected
 
 
 def test_a_version_0_file_is_migrated_and_unknown_keys_are_kept(tmp_path: Path) -> None:
@@ -137,6 +165,9 @@ def test_a_newer_or_unreadable_version_is_left_alone(
         ("frame_rate", "recording/frame_rate", "60.0"),
         ("frame_rate", "recording/frame_rate", "sixty"),
         ("microphone", "recording/microphone", "maybe"),
+        # A language of a newer Ekranik, or a typo: Windows' language until chosen.
+        ("language", "interface/language", "de"),
+        ("language", "interface/language", "ru_RU"),
         ("screen_folder", "folders/screen", "Videos"),
         ("screen_folder", "folders/screen", "C:Videos"),
         ("screen_folder", "folders/screen", "//?/rec"),
@@ -273,6 +304,8 @@ def test_going_back_to_the_default_is_announced_only_if_the_value_changes(
     [
         ("frame_rate", 45),
         ("microphone", "maybe"),
+        ("language", "de"),
+        ("language", None),
         ("screen_folder", "Videos"),
         ("screen_folder", "C:"),
         ("screen_folder", "\\Videos"),
@@ -354,6 +387,7 @@ def test_the_system_wide_file_is_ignored(
 
 def test_every_setting_knows_its_name() -> None:
     assert [setting.name for setting in Settings.all()] == [
+        "language",
         "screen_folder",
         "audio_folder",
         "frame_rate",

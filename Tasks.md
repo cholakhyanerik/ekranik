@@ -27,7 +27,6 @@ built here.
 
 | ID | Title | Type | Priority | Size | Milestone | Status |
 |---|---|---|---|---|---|---|
-| EKR-6 | Translation infrastructure (en, ru, hy) | Task | High | S | M1 Foundation | To Do |
 | EKR-7 | Language switcher | Story | Medium | S | M1 Foundation | To Do |
 | EKR-8 | Single instance | Story | Medium | S | M1 Foundation | To Do |
 | EKR-38 | Main window opens maximized | Story | Medium | XS | M1 Foundation | To Do |
@@ -63,48 +62,25 @@ built here.
 
 ## M1 Foundation
 
-### EKR-6 · Translation infrastructure (en, ru, hy)
-Task · High · S · `i18n`
-
-**Why.** Rule 14: the app ships in English, Russian and Armenian.
-
-**What to do.**
-- `QTranslator` loads `ekranik_<lang>.qm`; language = saved choice (a new
-  `Setting` in `settings.py`, empty = follow Windows) → Windows display
-  language (`QLocale.system().uiLanguages()`) → English.
-- `translations/ekranik_ru.ts` and `ekranik_hy.ts` through
-  `uv run pyside6-lupdate`; `.qm` files through `uv run pyside6-lrelease`.
-  Decide whether `.qm` files are committed or built when packaging.
-- Add an `/i18n` skill with the exact commands.
-
-**Acceptance criteria.**
-- [ ] A forced language shows Russian or Armenian text; a missing translation
-  falls back to English.
-
-**Risks.** lupdate only finds literal strings passed to `tr()` or `translate()`.
-It scans a folder for `.py` only when `-extensions py` comes *before* the folder
-on the command line (otherwise: "Found 0 source texts"); with `-locations none`
-and `-no-obsolete` the `.ts` files don't churn (19 strings today, 2026-11-20).
-Qt's own strings (the tab bar's scroll arrows, text-field menus) come from
-Qt's `qtbase_<lang>.qm`: PySide6 ships Russian, not Armenian (EKR-24). Dialog
-buttons are Ekranik's own (`addButton`), since Qt resets standard buttons'
-texts on every language change.
-
 ### EKR-7 · Language switcher
 Story · Medium · S · `i18n`, `ui`
 
 **Why.** People pick their language without changing Windows.
 
 **What to do.**
-- A General page, first in the settings window, with a Language card: English,
-  Русский, Հայերեն, each written in its own language. Build it like the
-  Recording page (`settings_dialog.page()`, `widgets.Card`); the choice applies
-  at once and Cancel takes it back, as for every setting there.
-- Switch live: install the new translator; widgets handle
-  `QEvent.LanguageChange` with a `retranslate()` method.
+- A General page, first in the settings window, with a Language card for
+  `Settings.language`: Windows' language (`Language.SYSTEM`, the default),
+  English, Русский, Հայերեն — each language written in its own language, never
+  translated. Build it like the Recording page (`settings_dialog.page()`,
+  `widgets.Card`); the choice applies at once and Cancel takes it back, as for
+  every setting there.
+- The live switch exists (EKR-6): `ekranik.i18n` follows the setting, and
+  windows set their texts again on `QEvent.LanguageChange` in `retranslate()`.
+  The new page's texts follow the /i18n skill.
 
 **Acceptance criteria.**
-- [ ] Switching updates every visible string at once; the choice persists.
+- [ ] Switching updates every visible string at once, including the settings
+  window itself; Cancel goes back to the language before; the choice persists.
 
 ### EKR-8 · Single instance
 Story · Medium · S · `app`
@@ -373,34 +349,39 @@ Story · High · S · `hotkeys`, `ui`
 ### EKR-23 · Russian translation
 Task · High · S · `i18n`
 
-**Why.** Rule 14.
+**Why.** Rule 14. Each change translates its own texts (the tests fail on an
+untranslated one, EKR-6), so this is the review of the whole before the release.
 
 **What to do.**
-- Translate every string in `ekranik_ru.ts`; check each screen for cut-off
-  text.
+- Read every text of `ekranik_ru.ts` together: the same thing has the same
+  name everywhere, in Windows' terms (the glossary in the /i18n skill).
+- Look at each screen in Russian for cut-off or badly wrapped text.
 
 **Acceptance criteria.**
-- [ ] `pyside6-lrelease` reports no unfinished translations; every screen is
-  checked in Russian.
+- [ ] Every screen is checked in Russian; the glossary covers every recurring
+  term.
 
 ### EKR-24 · Armenian translation
 Task · High · S · `i18n`
 
-**Why.** Rule 14.
+**Why.** Rule 14. Each change translates its own texts (EKR-6); this is the
+review of the whole, plus Qt's own texts, which Qt has no Armenian for.
 
 **What to do.**
-- Translate every string in `ekranik_hy.ts`, using established Windows and
-  software terms rather than invented words.
-- Check that Armenian script renders in every widget; add a fallback font if
-  needed.
-- Qt has no Armenian translation of its own strings (`qtbase_hy.qm` doesn't
-  exist): find which ones Ekranik shows (accessible names of the tab bar's
-  scroll arrows, context menus of text fields) and translate them in a
-  `qtbase`-context `.ts` of our own, or avoid them.
+- Read every text of `ekranik_hy.ts` together, in established Windows and
+  software terms rather than invented words (the /i18n glossary).
+- Look at each screen in Armenian. The settings window renders Armenian in the
+  default font (2026-11-20); check the newer screens, add a fallback font only
+  if one fails.
+- `qtbase_hy.qm` doesn't exist: find which of Qt's texts Ekranik shows
+  (accessible names of the tab bar's scroll arrows, context menus of text
+  fields, key names such as "Space") and translate them in a `qtbase_hy.ts` of
+  our own, built by `tools/translations.py` and loaded when Qt has none. Not
+  inside `ekranik_hy.ts`: lupdate's `-no-obsolete` drops every text the code
+  doesn't contain.
 
 **Acceptance criteria.**
-- [ ] `pyside6-lrelease` reports no unfinished translations; every screen is
-  checked in Armenian.
+- [ ] Every screen is checked in Armenian, Qt's texts included.
 
 ## M5 Quality
 
@@ -534,9 +515,12 @@ Task · High · S · `packaging`
   app folder, with the version taken from pyproject.toml.
 - Bundle the runtime dependencies only (`--no-dev`): pytest and ruff stay out
   of the app.
+- Bundle the translations: `ekranik/translations/*.qm`, and Qt's
+  `qtbase_ru.qm`, found through `QLibraryInfo`'s translations path.
 
 **Acceptance criteria.**
 - [ ] A clean clone builds with one command; the output stays out of git.
+- [ ] The built app shows Russian and Armenian texts, Qt's Russian included.
 
 ### EKR-34 · MSIX package
 Task · High · S · `packaging`

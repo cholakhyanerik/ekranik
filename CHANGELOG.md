@@ -4,6 +4,33 @@ Notable changes to Ekranik, newest first. Versions: patch for every finished
 task, minor when a milestone in [Tasks.md](Tasks.md) is complete, 1.0.0 for the
 first Microsoft Store release.
 
+## 0.1.7 — 2026-11-20
+
+### Added
+
+- Ekranik speaks Russian and Armenian as well as English. Until you choose a
+  language, it uses the first language in your Windows list of preferred
+  languages (Settings → Time & language → Language & region) that it has, then
+  the language of your regional format, and English otherwise. The main window and the settings window are translated; Qt's own
+  texts, such as the names of keys in shortcuts, are in Russian too, and stay
+  English in Armenian for now.
+- A language choice is kept in the settings file (`[interface]`,
+  `language=en`, `ru` or `hy`; empty follows Windows) and applies at once,
+  without a restart. The switcher in the settings window comes in a later
+  version.
+- A text without a translation is shown in English rather than left empty, and
+  a translation is shipped only once it is marked finished, so a draft never
+  reaches you.
+
+### Changed
+
+- English loads no translation file at startup; Russian or Armenian adds under
+  1 ms. Following the Windows language adds about 2 ms, the cost of asking
+  Windows for your language list.
+- For contributors: `uv run tools/translations.py` collects the texts of the
+  code and builds the translations; the tests fail when a text is not
+  translated into both languages, or a translation is not rebuilt.
+
 ## 0.1.6 — 2026-11-20
 
 ### Added

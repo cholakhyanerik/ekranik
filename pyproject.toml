@@ -1,6 +1,6 @@
 [project]
 name = "ekranik"
-version = "0.1.6"
+version = "0.1.7"
 description = "Screen and audio recorder for Windows."
 readme = "README.md"
 license = "MIT"
@@ -43,3 +43,5 @@ extend-select = ["W", "I", "B", "UP", "S", "PERF", "SIM"]
 "tests/**" = ["S101"]
 # The hooks run git and uv on purpose.
 ".claude/hooks/*.py" = ["S603", "S607"]
+# The tools run Qt's tools (lupdate, lrelease) on purpose, by full path.
+"tools/*.py" = ["S603"]

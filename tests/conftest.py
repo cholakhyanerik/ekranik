@@ -32,6 +32,8 @@ def _configured_app(
     current = settings.install(qapp)
     current.screen_folder = str(tmp_path_factory.mktemp("Videos"))
     current.audio_folder = str(tmp_path_factory.mktemp("Music"))
+    # The tests compare English texts, whatever the language of Windows.
+    current.language = settings.Language.ENGLISH
 
 
 @pytest.fixture(autouse=True)

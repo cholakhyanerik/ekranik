@@ -5,7 +5,7 @@ import sys
 from PySide6.QtCore import QSettings
 from PySide6.QtWidgets import QApplication
 
-from ekranik import settings
+from ekranik import i18n, settings
 from ekranik.ui import theme
 from ekranik.ui.main_window import MainWindow
 
@@ -17,7 +17,8 @@ STYLE = "windows11"
 
 
 def configure_app(app: QApplication) -> None:
-    """Set the app up: its name (for settings and window titles), style, theme, settings."""
+    """Set the app up: its name (for settings and window titles), style, theme,
+    settings and language."""
     app.setOrganizationName(APP_NAME)
     app.setApplicationName(APP_NAME)
     app.setStyle(STYLE)
@@ -26,6 +27,7 @@ def configure_app(app: QApplication) -> None:
     QSettings.setDefaultFormat(QSettings.Format.IniFormat)
     theme.install(app)
     settings.install(app)
+    i18n.install(app)
 
 
 def main() -> int:

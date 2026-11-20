@@ -30,7 +30,7 @@ in memory and writes changes back on the next pass of the event loop.
 
 import re
 from collections.abc import Callable
-from enum import Enum, IntEnum
+from enum import Enum, IntEnum, StrEnum
 from pathlib import PureWindowsPath
 from typing import Self, overload
 
@@ -112,6 +112,17 @@ def rename(store: QSettings, old: str, new: str) -> None:
     store.remove(old)
 
 
+class Language(StrEnum):
+    """The interface language: English (the source), Russian or Armenian (rule 14)."""
+
+    SYSTEM = ""
+    """The first of the user's preferred languages in Windows that Ekranik has,
+    else English."""
+    ENGLISH = "en"
+    RUSSIAN = "ru"
+    ARMENIAN = "hy"
+
+
 class FrameRate(IntEnum):
     """Frames per second of screen recordings."""
 
@@ -135,6 +146,10 @@ def _parse_bool(raw: object) -> bool:
 
 def _parse_frame_rate(raw: object) -> FrameRate:
     return FrameRate(int(str(raw)))
+
+
+def _parse_language(raw: object) -> Language:
+    return Language(raw.strip().casefold() if isinstance(raw, str) else raw)
 
 
 _HIDDEN = re.compile("[\x00-\x1f\x7f-\x9f\u202a-\u202e\u2066-\u2069]")
@@ -264,6 +279,8 @@ class Settings(QObject):
     changed = Signal(str)
     """Emitted with a setting's key after its value changed, so it applies at once."""
 
+    language = Setting("interface/language", lambda: Language.SYSTEM, _parse_language)
+    """The interface language; unless chosen, it follows Windows (``ekranik.i18n``)."""
     screen_folder = Setting(
         "folders/screen",
         _app_folder(QStandardPaths.StandardLocation.MoviesLocation),
