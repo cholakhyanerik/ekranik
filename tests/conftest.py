@@ -1,5 +1,7 @@
 """Shared fixtures: the tests run in an app set up the way `ekranik.main()` sets it up."""
 
+from collections.abc import Iterator
+
 import pytest
 from PySide6.QtCore import QSettings, QStandardPaths
 from PySide6.QtWidgets import QApplication
@@ -30,3 +32,16 @@ def _configured_app(
     current = settings.install(qapp)
     current.screen_folder = str(tmp_path_factory.mktemp("Videos"))
     current.audio_folder = str(tmp_path_factory.mktemp("Music"))
+
+
+@pytest.fixture(autouse=True)
+def _settings_unchanged(qapp: QApplication) -> Iterator[None]:
+    """Every test starts from the same settings, whatever the one before changed."""
+    saved = [
+        (setting, setting.raw(settings.install(qapp)))
+        for setting in settings.Settings.all()
+    ]
+    yield
+    current = settings.install(qapp)  # a test may have installed new settings
+    for setting, raw in saved:
+        setting.restore(current, raw)

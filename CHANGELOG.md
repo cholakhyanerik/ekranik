@@ -4,6 +4,45 @@ Notable changes to Ekranik, newest first. Versions: patch for every finished
 task, minor when a milestone in [Tasks.md](Tasks.md) is complete, 1.0.0 for the
 first Microsoft Store release.
 
+## 0.1.6 — 2026-11-20
+
+### Added
+
+- A settings window. Open it with the new **Settings** button in the main
+  window or with `Ctrl+,`. Its Recording page holds:
+  - the folders for screen recordings and for audio recordings: **Browse…**
+    picks another one, **Restore default** goes back to `Videos\Ekranik` or
+    `Music\Ekranik`, which then follows Windows again if you move those folders;
+  - the frame rate of screen recordings: the screen's refresh rate, 60 or
+    30 fps;
+  - whether new screen recordings include the microphone.
+- Changes apply at once. **OK** or Enter keeps them; **Cancel**, Esc or closing
+  the window takes back everything you changed since you opened it, and a
+  folder you never chose keeps following Windows.
+- Settings sit in cards, as in Windows 11, in light, dark and contrast themes,
+  and the window grows with the Windows text size. Every control works with the
+  keyboard (Tab, Ctrl+Tab between pages, Enter, Esc), and focus stays in its
+  card after **Restore default**. Scrolling the page with the mouse wheel never
+  changes a setting on the way. Screen readers announce each control with the
+  setting it belongs to, and say at once when a folder can't be used. A long
+  folder path is shortened in the middle, with the full path in its tooltip.
+
+### Changed
+
+- Starting Ekranik takes no longer: the settings window's code loads the first
+  time you open it (about 30 ms then), which keeps 7–10 ms off every start.
+
+### Security
+
+- Folders are chosen in Windows' own folder picker, which Ekranik calls
+  directly. Qt's file dialog, which shows the same picker, would save the last
+  folder you browsed in a registry key that every Qt app on your PC shares
+  (`HKCU\Software\QtProject`), and nothing turns that off; Ekranik writes
+  nothing to the registry (Windows itself remembers only the picker's window
+  size). The picker also keeps the folder out of Windows' recent items.
+- A folder whose name contains hidden text-direction or control characters is
+  refused with a message, so the folder you see is the one Ekranik uses.
+
 ## 0.1.5 — 2026-11-19
 
 ### Added

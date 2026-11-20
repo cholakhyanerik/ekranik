@@ -10,9 +10,9 @@ The rules below come from the owner (2026-11-19) and bind every change; the
 numbers are the owner's, keep them. This file stays in English and under ~200
 lines: procedures live in skills, this file keeps the rule and its reason.
 
-**State on 2026-11-19:** `uv run ekranik` opens an empty main window (`main()` →
-`configure_app()`: name, style, `ui/theme.py`, `settings.py`). The owner reports
-that the core features already exist; Tasks.md plans the road to 1.0 either way.
+**State on 2026-11-20:** `uv run ekranik` opens the main window with a Settings
+button (`main()` → `configure_app()`: name, style, `ui/theme.py`, `settings.py`);
+no recording yet. Tasks.md plans the road to 1.0.
 
 ## Commands
 
@@ -156,14 +156,12 @@ for web projects.
 - **Agents:** `Explore` (read-only search), `docs` (Claude Code, PySide6, uv,
   MSIX/Store and GitHub facts with sources), `reviewer` (one lens per run),
   `reviewer-security` (rule 9), `refuter` (tries to disprove each finding).
-- **Hooks:** `.claude/hooks/guard.py`, wired in `.claude/settings.json`.
-  Session start: Python vs system, outdated dependencies and tooling, next
-  tasks, unfinished git work. Before a shell command: blocks force-push,
-  `git reset --hard`, `git clean`, pip instead of uv, commits with secrets or
-  certificates. Before an agent call: blocks `model`/`effort` and the pinned
-  built-ins. After an edit or shell command: ruff fix + format, UTF-8 without
-  BOM, the rule 13 checks. On stop: asks to finish a task left uncommitted or
-  unpushed. After changing guard.py, run the self-test.
+- **Hooks:** `.claude/hooks/guard.py` (wired in `.claude/settings.json`; after
+  changing it, run the self-test). Session start: the rule 1 and 2 checks, next
+  tasks, unfinished git work. Shell: blocks force-push, `git reset --hard`,
+  `git clean`, pip, commits with secrets or certificates. Agents: blocks
+  `model`/`effort` and pinned built-ins. After edits: ruff, UTF-8 without BOM,
+  rule 13. Stop: asks to finish uncommitted or unpushed work.
 - **Permissions:** `.claude/settings.json` holds only the deny rules; see the
   decision log.
 
@@ -171,33 +169,33 @@ for web projects.
 
 One dated line each; durable decisions move into the rules above.
 
-- 2026-11-19 — Rule 1 is about the Python version: system 3.15.2 = project 3.15.
 - 2026-11-19 — The backlog file is `Tasks.md`, the owner's name for it (the
   owner's other projects use FEATURE_TASKS.md).
-- 2026-11-19 — Armenian uses the code `hy` (ISO 639-1); "AM" is the country.
-- 2026-11-19 — Ruff is the dev tool for format and lint, with the `S`
-  (security) and `PERF` rules: rules 3 and 9 in code. Line length stays at
-  ruff's default.
+- 2026-11-19 — Ruff formats and lints, with the `S` (security, rule 9) and
+  `PERF` (rule 3) rules; ruff's default line length.
 - 2026-11-19 — The author's email stays public in pyproject.toml and commits
   (owner's choice).
-- 2026-11-19 — The version goes up after every task, tooling-only ones
-  included: rule 7 says "always".
 - 2026-11-19 — "Ekranik" is a brand and is not translated (rule 14 exception).
   It is defined once, `ekranik.APP_NAME`; windows read it through
   `QGuiApplication.applicationDisplayName()`, which avoids an import cycle.
 - 2026-11-19 — Tests run under the real app name (they test `main()`'s setup),
   so `tests/conftest.py` sends INI settings (user and system scope) and the
   recording folders to temp folders and turns on `QStandardPaths` test mode.
-- 2026-11-19 — No app-wide stylesheet (rule 3 over EKR-3's plan): measured, it
-  doubled building and first painting 210 controls (34 → 67 ms). Text roles get
-  font and palette from `theme.set_role()`; a widget needing a sheet gets its own.
-- 2026-11-19 — The theme computes font pixels at 96 per inch: `QFontInfo` loads
-  the font engine (+12–14 ms at start). A test checks both agree.
-- 2026-11-19 — Settings use the GUI thread (rule 3 exception): the INI file is
-  tiny; opening and reading it measured under 1 ms.
-- 2026-11-19 — A setting the user chooses is always stored, even the default, so
-  a chosen folder stays chosen (rule 9); unchosen defaults follow Windows. A
+- 2026-11-19 — No app-wide stylesheet (rule 3): it doubled building and first
+  painting 210 controls (34 → 67 ms). Text roles get font and palette from
+  `theme.set_role()`; Ekranik's own widgets paint with theme colors (`ui/widgets.py`).
+  Font pixels are computed at 96 per inch: `QFontInfo` cost 12–14 ms at start.
+- 2026-11-19 — Settings use the GUI thread (rule 3 exception: the INI file
+  reads in under 1 ms). A chosen value is always stored, even the default, so a
+  chosen folder stays chosen (rule 9); unchosen defaults follow Windows. A
   network folder is allowed when the user names one: Windows connects, not Ekranik.
 - 2026-11-19 — `.claude/settings.json` has no `allow` list and no
   `defaultMode`: Claude Code's auto-mode safety check refused to let Claude
   grant itself permissions. The owner adds them if wanted.
+- 2026-11-20 — Folders are picked with Windows' `IFileOpenDialog` via ctypes
+  (`ui/folder_picker.py`), never `QFileDialog`: it writes the last folder to
+  `HKCU\Software\QtProject`, shared by all Qt apps, with no switch (Qt 6.12).
+- 2026-11-20 — The settings window applies changes at once; Cancel, Esc or
+  closing restores the file's raw values (`Setting.raw`/`restore`), so unchosen
+  stays unchosen. Pages appear with their first setting. Its code loads on first
+  open: 7–10 ms off every start (rule 3).

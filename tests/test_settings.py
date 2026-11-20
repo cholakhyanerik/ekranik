@@ -350,3 +350,43 @@ def test_the_system_wide_file_is_ignored(
         assert not current.store.contains(Settings.frame_rate.key)
     finally:
         system.unlink()
+
+
+def test_every_setting_knows_its_name() -> None:
+    assert [setting.name for setting in Settings.all()] == [
+        "screen_folder",
+        "audio_folder",
+        "frame_rate",
+        "microphone",
+    ]
+    for setting in Settings.all():
+        assert getattr(Settings, setting.name) is setting
+
+
+def test_restore_puts_back_what_the_file_held(tmp_path: Path) -> None:
+    path = write_ini(
+        tmp_path / "Ekranik.ini", "[recording]\nframe_rate=sixty\nmicrophone=false\n"
+    )
+    current = open_file(path)
+    saved = {setting: setting.raw(current) for setting in Settings.all()}
+    assert saved[Settings.frame_rate] == "sixty"
+    assert saved[Settings.screen_folder] is None
+    current.frame_rate = FrameRate.FPS_30
+    current.microphone = True
+    current.screen_folder = "D:/Recordings"
+    announced: list[str] = []
+    current.changed.connect(announced.append)
+    for setting, raw in saved.items():
+        setting.restore(current, raw)
+    # An unreadable value comes back as it was, for the Ekranik that wrote it.
+    assert current.store.value(Settings.frame_rate.key) == "sixty"
+    assert current.microphone is False
+    assert not current.store.contains(Settings.screen_folder.key)
+    assert sorted(announced) == sorted(
+        s.key
+        for s in (Settings.frame_rate, Settings.microphone, Settings.screen_folder)
+    )
+    # Putting back what is already there announces nothing.
+    announced.clear()
+    Settings.microphone.restore(current, "false")
+    assert announced == []

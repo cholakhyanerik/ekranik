@@ -197,6 +197,28 @@ class Setting[T]:
         self.key = key
         self.default = default
         self.parse = parse
+        self.name = ""
+        """The attribute's name in ``Settings``, for ``getattr()`` and friends."""
+
+    def __set_name__(self, owner: type, name: str) -> None:
+        self.name = name
+
+    def raw(self, settings: Settings) -> object | None:
+        """The value as the file holds it, readable or not; ``None`` when missing.
+
+        With ``restore()``, it takes back changes that were only tried out.
+        """
+        return settings.store.value(self.key)
+
+    def restore(self, settings: Settings, raw: object | None) -> None:
+        """Put back a value from ``raw()``, announcing it if the value in effect changes."""
+        before = self.__get__(settings, type(settings))
+        if raw is None:
+            settings.store.remove(self.key)
+        else:
+            settings.store.setValue(self.key, raw)
+        if self.__get__(settings, type(settings)) != before:
+            settings.changed.emit(self.key)
 
     def stored(self, settings: Settings) -> T | None:
         """The stored value; ``None`` when the key is missing or unreadable."""
@@ -260,6 +282,13 @@ class Settings(QObject):
     """Frames per second of screen recordings."""
     microphone = Setting("recording/microphone", lambda: True, _parse_bool)
     """Whether a new screen recording includes the microphone."""
+
+    @classmethod
+    def all(cls) -> tuple[Setting[object], ...]:
+        """Every setting, in the order defined here."""
+        return tuple(
+            value for value in vars(cls).values() if isinstance(value, Setting)
+        )
 
     def __init__(self, store: QSettings, parent: QObject | None = None) -> None:
         """Read the settings from ``store``, migrating it first; owns the store.

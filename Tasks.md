@@ -27,10 +27,10 @@ built here.
 
 | ID | Title | Type | Priority | Size | Milestone | Status |
 |---|---|---|---|---|---|---|
-| EKR-5 | Settings window | Story | High | S | M1 Foundation | To Do |
 | EKR-6 | Translation infrastructure (en, ru, hy) | Task | High | S | M1 Foundation | To Do |
 | EKR-7 | Language switcher | Story | Medium | S | M1 Foundation | To Do |
 | EKR-8 | Single instance | Story | Medium | S | M1 Foundation | To Do |
+| EKR-38 | Main window opens full screen | Story | Medium | XS | M1 Foundation | To Do |
 | EKR-9 | Recording controller | Task | Highest | S | M2 Recording | To Do |
 | EKR-10 | Output folder and file names | Story | High | S | M2 Recording | To Do |
 | EKR-11 | Microphone picker | Story | High | S | M2 Recording | To Do |
@@ -63,33 +63,6 @@ built here.
 
 ## M1 Foundation
 
-### EKR-5 · Settings window
-Story · High · S · `ui`, `settings`
-
-**Why.** Folder, devices, frame rate, hotkeys and language need one home.
-
-**What to do.**
-- A settings dialog with pages General, Recording and Hotkeys, opened from the
-  main window; values come from and go to `settings.Settings`
-  (`settings.install(app)`), which already holds the folders, the frame rate
-  and the microphone default. Assign only what the user changed: an assignment
-  is a choice and pins the value (a default folder would stop following
-  Windows); `del settings.x` goes back to the default.
-- Look: headings and hints through `theme.set_role()`, gaps from
-  `theme.Spacing`. To group settings as Windows 11 cards, add a painted `Card`
-  widget with card colors in the theme (Fluent card fill and stroke: light
-  `#fbfbfb`/`#e5e5e5`, dark `#2b2b2b`/`#1d1d1d`) and a border in the palette's
-  text color in high contrast — no stylesheet (see `theme.py`).
-
-**Acceptance criteria.**
-- [ ] Changes apply at once and persist; Esc cancels, Enter confirms.
-- [ ] Every control is reachable with the keyboard.
-
-**Risks.** Qt's `QFileDialog` saves its last folder with `QSettings(scope,
-"QtProject")`, which ignores the INI default and may write
-`HKCU\Software\QtProject` (a Qt 5 app left that key on the dev machine). Check
-it, decide, and record the decision; tests replace the folder dialog.
-
 ### EKR-6 · Translation infrastructure (en, ru, hy)
 Task · High · S · `i18n`
 
@@ -109,6 +82,13 @@ Task · High · S · `i18n`
   falls back to English.
 
 **Risks.** lupdate only finds literal strings passed to `tr()` or `translate()`.
+It scans a folder for `.py` only when `-extensions py` comes *before* the folder
+on the command line (otherwise: "Found 0 source texts"); with `-locations none`
+and `-no-obsolete` the `.ts` files don't churn (19 strings today, 2026-11-20).
+Qt's own strings (the tab bar's scroll arrows, text-field menus) come from
+Qt's `qtbase_<lang>.qm`: PySide6 ships Russian, not Armenian (EKR-24). Dialog
+buttons are Ekranik's own (`addButton`), since Qt resets standard buttons'
+texts on every language change.
 
 ### EKR-7 · Language switcher
 Story · Medium · S · `i18n`, `ui`
@@ -116,8 +96,10 @@ Story · Medium · S · `i18n`, `ui`
 **Why.** People pick their language without changing Windows.
 
 **What to do.**
-- Settings → General → Language: English, Русский, Հայերեն, each written in its
-  own language.
+- A General page, first in the settings window, with a Language card: English,
+  Русский, Հայերեն, each written in its own language. Build it like the
+  Recording page (`settings_dialog.page()`, `widgets.Card`); the choice applies
+  at once and Cancel takes it back, as for every setting there.
 - Switch live: install the new translator; widgets handle
   `QEvent.LanguageChange` with a `retranslate()` method.
 
@@ -135,6 +117,29 @@ Story · Medium · S · `app`
 
 **Acceptance criteria.**
 - [ ] A second launch shows the running window and starts no second process.
+
+### EKR-38 · Main window opens full screen
+Story · Medium · XS · `ui`
+
+**Why.** The owner's request (2026-11-20): Ekranik opens full screen by default.
+
+**What to do.**
+- `main()` shows the main window maximized (`showMaximized()`) on the screen it
+  opens on, with its title bar and the taskbar still there, the way Windows
+  apps start "full screen". F11 switches to true full screen
+  (`showFullScreen()`: no title bar, over the taskbar) and back; Esc also leaves
+  it. Decided so (rule 12) because true full screen on every start would hide
+  the window's close button and the taskbar.
+- Restoring a maximized window gives `theme.MAIN_WINDOW_SIZE`, grown with the
+  Windows text size (`theme.for_text_size()`), centered.
+
+**Acceptance criteria.**
+- [ ] Every start shows the window maximized; F11 and Esc switch full screen on
+  and off; restoring gives the normal size. Tests for each.
+
+**Risks.** A maximized window covers what the user wants to record: with EKR-14
+and EKR-18, make sure a screen recording doesn't capture Ekranik's own window
+(minimize it, or keep it out of the capture like the overlay, EKR-19).
 
 ## M2 Recording
 
@@ -177,7 +182,8 @@ Story · High · S · `recording`, `audio`
 
 **What to do.**
 - List inputs with `QMediaDevices.audioInputs()`; default = the system
-  default; follow `audioInputsChanged`; save the device ID.
+  default; follow `audioInputsChanged`; save the device ID. A card in
+  Settings → Recording.
 - The fallback notice is a warning: add a `caution` color and role to the theme
   (Fluent caution: light `#9d5d00`, dark `#fce100`).
 
@@ -210,7 +216,8 @@ Story · High · XS · `recording`, `video`
 
 **What to do.**
 - List `QGuiApplication.screens()` with name, resolution and refresh rate;
-  default = the primary screen; save the choice.
+  default = the primary screen; save the choice. A card in Settings →
+  Recording.
 
 **Acceptance criteria.**
 - [ ] Works with one and with two monitors, including different scaling.
@@ -353,9 +360,10 @@ Story · High · S · `hotkeys`, `ui`
 **Why.** A core feature: customizable hotkeys.
 
 **What to do.**
-- Settings → Hotkeys: a `QKeySequenceEdit` per action, a conflict check (inside
-  the app and against Windows registration), "Reset to defaults" (`del` on each
-  hotkey setting); saved.
+- A Hotkeys page in the settings window (it has none until there are hotkeys):
+  a `QKeySequenceEdit` per action, a conflict check (inside the app and against
+  Windows registration, and `Ctrl+,`, which opens the settings), "Reset to
+  defaults" (`del` on each hotkey setting); saved.
 
 **Acceptance criteria.**
 - [ ] A taken combination shows a clear message and is not saved.
@@ -386,6 +394,10 @@ Task · High · S · `i18n`
   software terms rather than invented words.
 - Check that Armenian script renders in every widget; add a fallback font if
   needed.
+- Qt has no Armenian translation of its own strings (`qtbase_hy.qm` doesn't
+  exist): find which ones Ekranik shows (accessible names of the tab bar's
+  scroll arrows, context menus of text fields) and translate them in a
+  `qtbase`-context `.ts` of our own, or avoid them.
 
 **Acceptance criteria.**
 - [ ] `pyside6-lrelease` reports no unfinished translations; every screen is
@@ -452,7 +464,8 @@ Task · Medium · XS · `ci`
 - [ ] A code push runs it once; a docs-only push does not run it.
 
 **Risks.** If the runner has no usable desktop, set `QT_QPA_PLATFORM=offscreen`;
-the tests pass that way locally (2026-11-19).
+the tests pass that way locally (2026-11-20; 8 skip, such as the real folder
+picker and font measuring).
 
 ## M6 Store release
 

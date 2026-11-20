@@ -13,7 +13,8 @@ standard controls (34 → 67 ms, measured 2026-11-19), even widgets no rule
 matched (CLAUDE.md, rule 3).
 
 The values follow the Windows 11 (Fluent) design: the 4-pixel spacing grid, the
-control and overlay corner radii, the type ramp and the text and status colors.
+control and overlay corner radii, the type ramp and the text, status and card
+colors.
 Sizes are device-independent pixels, so they scale with the display.
 """
 
@@ -34,10 +35,26 @@ class Colors(NamedTuple):
     """Errors and the recording indicator."""
     success: str
     """Confirmations, such as a saved recording."""
+    card_fill: str
+    """The background of a card, such as one setting in the settings window."""
+    card_stroke: str
+    """The border of a card."""
 
 
-LIGHT = Colors(text_secondary="#5c5c5c", critical="#c42b1c", success="#0f7b0f")
-DARK = Colors(text_secondary="#cccccc", critical="#ff99a4", success="#6ccb5f")
+LIGHT = Colors(
+    text_secondary="#5c5c5c",
+    critical="#c42b1c",
+    success="#0f7b0f",
+    card_fill="#fbfbfb",
+    card_stroke="#e5e5e5",
+)
+DARK = Colors(
+    text_secondary="#cccccc",
+    critical="#ff99a4",
+    success="#6ccb5f",
+    card_fill="#2b2b2b",
+    card_stroke="#1d1d1d",
+)
 
 
 class Spacing(IntEnum):
@@ -95,8 +112,24 @@ def text_px(font: QFont) -> int:
     return round(font.pointSizeF() * LOGICAL_DPI / 72)
 
 
+STROKE = 1
+"""The width of borders, such as a card's (Fluent: 1 effective pixel)."""
+
+WINDOWS_BODY_PX = 12
+"""Windows' body text at 100 % "Text size" (9-point Segoe UI), as Qt gets it."""
+
+
+def for_text_size(size: QSize, body_px: int) -> QSize:
+    """A window size grown with Windows' "Text size", never below the design."""
+    factor = max(1.0, body_px / WINDOWS_BODY_PX)
+    return QSize(round(size.width() * factor), round(size.height() * factor))
+
+
 MAIN_WINDOW_SIZE = QSize(640, 400)
 """The main window's size on first open."""
+
+SETTINGS_WINDOW_SIZE = QSize(600, 560)
+"""The settings window's size when it opens."""
 
 ROLE = "role"
 """The widget property that holds a widget's role."""
@@ -107,12 +140,15 @@ class Role(StrEnum):
 
     TITLE = "title"
     SUBTITLE = "subtitle"
+    HEADING = "heading"
+    """A group of settings or controls: body size, semibold (Fluent's Body Strong)."""
     SECONDARY = "secondary"
     CRITICAL = "critical"
     SUCCESS = "success"
 
 
 _ROLE_SIZES = {Role.TITLE: FontSize.TITLE, Role.SUBTITLE: FontSize.SUBTITLE}
+_STRONG_ROLES = frozenset({Role.TITLE, Role.SUBTITLE, Role.HEADING})
 
 
 def _role_color(role: Role, colors: Colors) -> str | None:
@@ -141,6 +177,7 @@ def style_label(
     font.setResolveMask(0)  # inherit family, size and weight unless set below
     if (size := _ROLE_SIZES.get(role)) is not None:
         font.setPixelSize(font_px(size, body_px))
+    if role in _STRONG_ROLES:
         font.setWeight(QFont.Weight.DemiBold)
     widget.setFont(font)
 

@@ -282,3 +282,14 @@ def test_theme_follows_the_windows_app_mode(qtbot: QtBot, qapp: QApplication) ->
             )
     finally:
         hints.unsetColorScheme()
+
+
+def test_heading_role_is_semibold_body_text(qtbot: QtBot, qapp: QApplication) -> None:
+    plain = make_label(qtbot)
+    heading = make_label(qtbot)
+    theme.set_role(heading, theme.Role.HEADING)
+    assert heading.font().weight() == QFont.Weight.DemiBold
+    # The size is inherited, so it follows the Windows text size by itself.
+    assert heading.font().pixelSize() == plain.font().pixelSize()
+    assert heading.font().pointSizeF() == plain.font().pointSizeF()
+    assert heading.palette().resolveMask() == 0
