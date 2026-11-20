@@ -30,7 +30,7 @@ built here.
 | EKR-6 | Translation infrastructure (en, ru, hy) | Task | High | S | M1 Foundation | To Do |
 | EKR-7 | Language switcher | Story | Medium | S | M1 Foundation | To Do |
 | EKR-8 | Single instance | Story | Medium | S | M1 Foundation | To Do |
-| EKR-38 | Main window opens full screen | Story | Medium | XS | M1 Foundation | To Do |
+| EKR-38 | Main window opens maximized | Story | Medium | XS | M1 Foundation | To Do |
 | EKR-9 | Recording controller | Task | Highest | S | M2 Recording | To Do |
 | EKR-10 | Output folder and file names | Story | High | S | M2 Recording | To Do |
 | EKR-11 | Microphone picker | Story | High | S | M2 Recording | To Do |
@@ -118,24 +118,23 @@ Story · Medium · S · `app`
 **Acceptance criteria.**
 - [ ] A second launch shows the running window and starts no second process.
 
-### EKR-38 · Main window opens full screen
+### EKR-38 · Main window opens maximized
 Story · Medium · XS · `ui`
 
-**Why.** The owner's request (2026-11-20): Ekranik opens full screen by default.
+**Why.** The owner's request (2026-11-20): Ekranik opens filling the screen,
+like most Windows apps.
 
 **What to do.**
 - `main()` shows the main window maximized (`showMaximized()`) on the screen it
-  opens on, with its title bar and the taskbar still there, the way Windows
-  apps start "full screen". F11 switches to true full screen
-  (`showFullScreen()`: no title bar, over the taskbar) and back; Esc also leaves
-  it. Decided so (rule 12) because true full screen on every start would hide
-  the window's close button and the taskbar.
+  opens on: it fills the screen, and its title bar (minimize, maximize, close)
+  and the taskbar stay. Not true full screen (`showFullScreen()`, no title bar,
+  over the taskbar): the owner chose maximized (2026-11-20).
 - Restoring a maximized window gives `theme.MAIN_WINDOW_SIZE`, grown with the
   Windows text size (`theme.for_text_size()`), centered.
 
 **Acceptance criteria.**
-- [ ] Every start shows the window maximized; F11 and Esc switch full screen on
-  and off; restoring gives the normal size. Tests for each.
+- [ ] Every start shows the window maximized, with title bar and taskbar;
+  restoring gives the normal size. Tests for both.
 
 **Risks.** A maximized window covers what the user wants to record: with EKR-14
 and EKR-18, make sure a screen recording doesn't capture Ekranik's own window
